@@ -11,30 +11,42 @@ class Word(models.Model):
 
     def __str__(self):
         return self.word_name
+    
+class Game(models.Model):
+    attempts_count = models.IntegerField(default=6)
+    word = models.ForeignKey(Word, on_delete=models.CASCADE)
 
+ 
 class Attempt(models.Model):
-    word_name = models.ForeignKey(Word, on_delete=models.CASCADE)
     guess = models.CharField(max_length=5)
-    feedback = "rrrrr"
+    feedback = models.CharField(max_length=5, default="rrrrr")
     won = models.BooleanField(default=False)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    
+    
+    def save(self, *args, **kwargs):
+        word_name = self.game.word.word_name 
+        f=['r']*5
+        for i in range(5):
+            if self.game.word.word_name[i]== self.guess[i]:
+                f[i]='g'
+        for i in range(5):
+            if self.guess[i] in word_name and f[i] !='g':
+                f[i]='y'
+    
+        self.feedback = ''.join(f)
+        if self.guess == word_name:
+            self.won = True
+        super().save(*args, **kwargs)
+        
 
-   
-    for i in range(5):
-        if self.word_name[i]== self.guess[i]:
-            feedback[i]='g'
-    for i in range(5):
-        if self.guess[i] in self.word_name and i not in green:
-            feedback[i]='y'
 
     def __str__(self):
-        if self.guess == self.word_name:
-            self.won = True
+        if self.guess == self.game.word.word_name:
             return f"Correctly guessed. You won!"
         else:
             return f"Attempt : {self.guess}"
 
-class Game(models.Model):
-    attempts_count = 6
- 
+
 
     
